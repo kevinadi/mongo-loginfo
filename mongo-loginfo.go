@@ -63,14 +63,7 @@ storage engine : %s
 
 var output = new(Output)
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Needs a file name")
-		os.Exit(1)
-	}
-	filename := os.Args[1]
-	output.filename = filename
-
+func Read_file(filename string, line chan<- string) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Println("File does not exist")
 		os.Exit(1)
@@ -83,25 +76,40 @@ func main() {
 	}
 	defer file.Close()
 
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line <- scanner.Text()
+	}
+	close(line)
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Needs a file name")
+		os.Exit(1)
+	}
+	filename := os.Args[1]
+	output.filename = filename
+
+	var wg_main sync.WaitGroup
+	var linecount int
+	var time_start, time_end time.Time
+
+	ch_line := make(chan string)
 	chans := map[string]chan string{
 		"ts":            make(chan string),
 		"initandlisten": make(chan string),
 		"main":          make(chan string),
 	}
 
-	var wg_main sync.WaitGroup
-	var linecount int
-	var time_start, time_end time.Time
-
+	go Read_file(filename, ch_line)
 	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
 	go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
 	go Matcher(func_array_main, chans["main"], output, &wg_main)
-	wg_main.Add(3)
+	wg_main.Add(len(chans))
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	for line := range ch_line {
 
-		line := scanner.Text()
 		lineFields := strings.Fields(line)
 		if len(lineFields) < 4 {
 			continue
