@@ -21,23 +21,23 @@ type Output struct {
 
 func (o *Output) print_output() {
 	outstr := `
-      filename : %s
-          host : %s
-          port : %s
+      filename : %v
+          host : %v
+          port : %v
      log start : %v
        log end : %v
   log duration : %v
-    log length : %d lines
-    db version : %s
-storage engine : %s
+    log length : %v lines
+    db version : %v
+storage engine : %v
 
 Features
-  Audit      : %t
-  Keyfile    : %s
-  Enterprise : %t
+  Audit      : %v
+  Keyfile    : %v
+  Enterprise : %v
 
 Events
-  Restarts   : %d
+  Restarts   : %v
 `
 	fmt.Printf(outstr,
 		o.filename,
