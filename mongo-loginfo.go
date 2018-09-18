@@ -83,17 +83,19 @@ func main() {
 	}
 	defer file.Close()
 
-	ch_ts := make(chan string)
-	ch_initandlisten := make(chan string)
-	ch_main := make(chan string)
+	chans := map[string]chan string{
+		"ts":            make(chan string),
+		"initandlisten": make(chan string),
+		"main":          make(chan string),
+	}
 
 	var wg_main sync.WaitGroup
 	var linecount int
 	var time_start, time_end time.Time
 
-	go Matcher_timestamp(ch_ts, &time_end, &wg_main)
-	go Matcher(func_array_initandlisten, ch_initandlisten, output, &wg_main)
-	go Matcher(func_array_main, ch_main, output, &wg_main)
+	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
+	go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
+	go Matcher(func_array_main, chans["main"], output, &wg_main)
 	wg_main.Add(3)
 
 	scanner := bufio.NewScanner(file)
@@ -109,20 +111,20 @@ func main() {
 		if linecount == 1 {
 			time_start = parse_timestamp(lineFields[0])
 		}
-		ch_ts <- lineFields[0]
+		chans["ts"] <- lineFields[0]
 
 		switch lineFields[3] {
 		case "[initandlisten]":
-			ch_initandlisten <- strings.Join(lineFields[4:], " ")
+			chans["initandlisten"] <- strings.Join(lineFields[4:], " ")
 		case "[main]":
-			ch_main <- strings.Join(lineFields[4:], " ")
+			chans["main"] <- strings.Join(lineFields[4:], " ")
 		}
 
 	}
 
-	close(ch_ts)
-	close(ch_initandlisten)
-	close(ch_main)
+	for _, ch := range chans {
+		close(ch)
+	}
 	wg_main.Wait()
 
 	output.log_start = time_start
