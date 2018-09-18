@@ -10,19 +10,13 @@ import (
 )
 
 type Output struct {
-	filename       string
-	db_version     string
-	audit          bool
-	keyfile        string
-	storage_engine string
-	enterprise     bool
-	host           string
-	port           string
-	log_start      time.Time
-	log_end        time.Time
-	log_duration   time.Duration
-	log_length     int
-	restarts       int
+	filename      string
+	log_start     time.Time
+	log_end       time.Time
+	log_duration  time.Duration
+	log_length    int
+	initandlisten *Res_InitAndListen
+	main          *Res_Main
 }
 
 func (o *Output) print_output() {
@@ -46,18 +40,18 @@ storage engine : %s
 
 	fmt.Printf(outstr,
 		o.filename,
-		o.host,
-		o.port,
-		o.db_version,
-		o.audit,
-		o.keyfile,
-		o.storage_engine,
-		o.enterprise,
+		o.initandlisten.host,
+		o.initandlisten.port,
+		o.initandlisten.db_version,
+		o.initandlisten.audit,
+		o.initandlisten.keyfile,
+		o.initandlisten.storage_engine,
+		o.initandlisten.enterprise,
 		o.log_start,
 		o.log_end,
 		o.log_duration,
 		o.log_length,
-		o.restarts,
+		o.main.restarts,
 	)
 }
 
@@ -135,6 +129,8 @@ func main() {
 	}
 	wg_main.Wait()
 
+	output.initandlisten = res_initandlisten
+	output.main = res_main
 	output.log_start = time_start
 	output.log_end = time_end
 	output.log_duration = time_end.Sub(time_start)
