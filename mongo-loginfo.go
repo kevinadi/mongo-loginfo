@@ -24,33 +24,34 @@ func (o *Output) print_output() {
       filename : %s
           host : %s
           port : %s
-    db version : %s
-         audit : %t
-       keyfile : %s
-storage engine : %s
-    enterprise : %t
-
      log start : %v
        log end : %v
   log duration : %v
     log length : %d lines
+    db version : %s
+storage engine : %s
 
-      restarts : %d
+Features
+  Audit      : %t
+  Keyfile    : %s
+  Enterprise : %t
+
+Events
+  Restarts   : %d
 `
-
 	fmt.Printf(outstr,
 		o.filename,
 		o.initandlisten.host,
 		o.initandlisten.port,
-		o.initandlisten.db_version,
-		o.initandlisten.audit,
-		o.initandlisten.keyfile,
-		o.initandlisten.storage_engine,
-		o.initandlisten.enterprise,
 		o.log_start,
 		o.log_end,
 		o.log_duration,
 		o.log_length,
+		o.initandlisten.db_version,
+		o.initandlisten.storage_engine,
+		o.initandlisten.audit,
+		o.initandlisten.keyfile,
+		o.initandlisten.enterprise,
 		o.main.restarts,
 	)
 }
