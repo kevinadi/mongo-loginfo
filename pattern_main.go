@@ -1,5 +1,24 @@
 package main
 
-var func_array_main = []Regex_matcher_fn{
-	Match_count(`SERVER RESTARTED`, &output.restarts),
+import (
+	"fmt"
+	"regexp"
+)
+
+var patterns_main = []GenericPattern{
+	GenericPattern{
+		"restart",
+		regexp.MustCompile(`SERVER RESTARTED`),
+		pattern_true,
+	},
+}
+
+func process_main(line string) {
+	for _, pat := range patterns_main {
+		match := pat.regex.FindStringSubmatch(line)
+		if len(match) == 0 {
+			continue
+		}
+		fmt.Println(pat.title, ":", pat.matchfunc(match))
+	}
 }

@@ -1,11 +1,57 @@
 package main
 
-var func_array_initandlisten = []Regex_matcher_fn{
-	Match_string(`host=(?P<host>[^\s]+)`, &output.host),
-	Match_string(`port=(?P<port>\d+)`, &output.port),
-	Match_string(`db version v(?P<dbver>\d{0,2}\.\d{0,2}\.\d{0,2})`, &output.db_version),
-	Match_string(`engine:\ *"(?P<storage>[^"]+)"`, &output.storage_engine),
-	Match_string(`keyFile:\ *"(?P<keyfile>[^"]+)"`, &output.keyfile),
-	Match_bool(`auditLog:\ *{\ *destination:`, &output.audit),
-	Match_bool(`modules:\ *enterprise`, &output.enterprise),
+import (
+	"fmt"
+	"regexp"
+)
+
+var patterns_initandlisten = []GenericPattern{
+	GenericPattern{
+		"db_version",
+		regexp.MustCompile(`db version v(?P<dbver>\d{0,2}\.\d{0,2}\.\d{0,2})`),
+		pattern_match,
+	},
+	GenericPattern{
+		"audit",
+		regexp.MustCompile(`auditLog:\ *{\ *destination:`),
+		pattern_true,
+	},
+	GenericPattern{
+		"using_keyfile",
+		regexp.MustCompile(`keyFile:\ *"(?P<keyfile>[^"]+)"`),
+		pattern_match,
+	},
+	GenericPattern{
+		"storage_engine",
+		regexp.MustCompile(`engine:\ *"(?P<storage>[^"]+)"`),
+		pattern_match,
+	},
+	GenericPattern{
+		"enterprise_module",
+		regexp.MustCompile(`modules:\ *enterprise`),
+		pattern_true,
+	},
+	GenericPattern{
+		"host",
+		regexp.MustCompile(`host=(?P<host>[^\s]+)`),
+		pattern_match,
+	},
+	GenericPattern{
+		"port",
+		regexp.MustCompile(`port=(?P<port>\d+)`),
+		pattern_match,
+	},
+}
+
+func process_initandlisten(line string) {
+	for _, pat := range patterns_initandlisten {
+		match := pat.regex.FindStringSubmatch(line)
+		if len(match) == 0 {
+			continue
+		}
+		if pat.title == "host" {
+			fmt.Println()
+		}
+		fmt.Println(pat.title, ":", pat.matchfunc(match))
+	}
 }
