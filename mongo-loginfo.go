@@ -17,6 +17,7 @@ type Output struct {
 	log_length    int
 	initandlisten *Res_InitAndListen
 	main          *Res_Main
+	conn          *Res_Conn
 }
 
 func (o *Output) print_output() {
@@ -35,6 +36,7 @@ Features
   Audit      : %v
   Keyfile    : %v
   Enterprise : %v
+  Automation : %v
 
 Events
   Restarts   : %v
@@ -52,6 +54,7 @@ Events
 		o.initandlisten.audit,
 		o.initandlisten.keyfile,
 		o.initandlisten.enterprise,
+		o.conn.automation,
 		o.main.restarts,
 	)
 }
@@ -95,12 +98,14 @@ func main() {
 		"ts":            make(chan string),
 		"initandlisten": make(chan string),
 		"main":          make(chan string),
+		"conn":          make(chan string),
 	}
 
 	go Read_file(filename, ch_line)
 	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
 	go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
 	go Matcher(func_array_main, chans["main"], output, &wg_main)
+	go Matcher(func_array_conn, chans["conn"], output, &wg_main)
 	wg_main.Add(len(chans))
 
 	for line := range ch_line {
@@ -116,11 +121,13 @@ func main() {
 		}
 		chans["ts"] <- lineFields[0]
 
-		switch lineFields[3] {
-		case "[initandlisten]":
+		switch {
+		case lineFields[3] == "[initandlisten]":
 			chans["initandlisten"] <- strings.Join(lineFields[4:], " ")
-		case "[main]":
+		case lineFields[3] == "[main]":
 			chans["main"] <- strings.Join(lineFields[4:], " ")
+		case strings.HasPrefix(lineFields[3], "[conn"):
+			chans["conn"] <- strings.Join(lineFields[4:], " ")
 		}
 
 	}
@@ -132,6 +139,7 @@ func main() {
 
 	output.initandlisten = res_initandlisten
 	output.main = res_main
+	output.conn = res_conn
 	output.log_start = time_start
 	output.log_end = time_end
 	output.log_duration = time_end.Sub(time_start)
