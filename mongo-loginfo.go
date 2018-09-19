@@ -37,6 +37,7 @@ Features
   Keyfile    : %v
   Enterprise : %v
   Automation : %v
+  Encryption : %v
 
 Events
   Restarts   : %v
@@ -55,6 +56,7 @@ Events
 		o.initandlisten.keyfile,
 		o.initandlisten.enterprise,
 		o.conn.automation,
+		o.initandlisten.encrypted,
 		o.main.restarts,
 	)
 }
