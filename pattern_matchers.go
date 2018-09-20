@@ -65,7 +65,7 @@ func RegexMatchers(matcher_array []MatcherType, line <-chan string, wg_main *syn
 	wg.Add(len(matcher_array))
 
 	for i, fn := range matcher_array {
-		chans = append(chans, make(chan string, 32))
+		chans = append(chans, make(chan string, 8))
 		go fn.function(fn.target, chans[i], &wg)
 	}
 

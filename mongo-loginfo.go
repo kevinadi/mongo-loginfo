@@ -91,10 +91,10 @@ func main() {
 
 	ch_line := make(chan string)
 	chans := map[string]chan string{
-		"ts":            make(chan string, 128),
-		"initandlisten": make(chan string, 128),
-		"main":          make(chan string, 128),
-		"conn":          make(chan string, 128),
+		"ts":            make(chan string, 8),
+		"initandlisten": make(chan string, 8),
+		"main":          make(chan string, 8),
+		"conn":          make(chan string, 8),
 	}
 
 	go Read_file(filename, ch_line)
