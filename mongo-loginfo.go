@@ -31,14 +31,14 @@ func (o *Output) print_output() {
     log length : %v lines
     db version : %v
 storage engine : %v
-
+ 
 Features
   Audit      : %v
   Keyfile    : %v
   Enterprise : %v
   Automation : %v
   Encryption : %v
-
+ 
 Events
   Restarts   : %v
 `
@@ -105,9 +105,9 @@ func main() {
 
 	go Read_file(filename, ch_line)
 	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
-	//go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
-	go Matcher(func_array_main, chans["main"], output, &wg_main)
-	go Matcher(func_array_conn, chans["conn"], output, &wg_main)
+	go RegexMatchers(Matchers_initandlisten, chans["initandlisten"], &wg_main)
+	go RegexMatchers(Matchers_main, chans["main"], &wg_main)
+	go RegexMatchers(Matchers_conn, chans["conn"], &wg_main)
 
 	wg_main.Add(len(chans))
 
@@ -124,13 +124,14 @@ func main() {
 		}
 		chans["ts"] <- lineFields[0]
 
+		restofline := strings.Join(lineFields[4:], " ")
 		switch {
 		case lineFields[3] == "[initandlisten]":
-			chans["initandlisten"] <- strings.Join(lineFields[4:], " ")
+			chans["initandlisten"] <- restofline
 		case lineFields[3] == "[main]":
-			chans["main"] <- strings.Join(lineFields[4:], " ")
+			chans["main"] <- restofline
 		case strings.HasPrefix(lineFields[3], "[conn"):
-			chans["conn"] <- strings.Join(lineFields[4:], " ")
+			chans["conn"] <- restofline
 		}
 
 	}

@@ -1,11 +1,13 @@
 package main
 
 type Res_Main struct {
-	restarts int
+	restarts string
 }
 
 var res_main = new(Res_Main)
 
-var func_array_main = []RegexMatcher_fn{
-	Match_count(`SERVER RESTARTED`, &res_main.restarts),
+var Matcher_restarts = RegexMatcher_count(`SERVER RESTARTED`)
+
+var Matchers_main = []MatcherType{
+	MatcherType{Matcher_restarts, &res_main.restarts},
 }

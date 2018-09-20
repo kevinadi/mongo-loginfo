@@ -2,13 +2,19 @@ package main
 
 import (
 	"regexp"
+	"strconv"
 	"sync"
 )
 
-type RegexMatcher_fn func(<-chan string, *sync.WaitGroup)
+type RegexMatcher_func func(result *string, line <-chan string, wg *sync.WaitGroup)
 
-func Match_string(regex string, result *string) RegexMatcher_fn {
-	return func(line <-chan string, wg *sync.WaitGroup) {
+type MatcherType struct {
+	function RegexMatcher_func
+	target   *string
+}
+
+func RegexMatcher_string(regex string) RegexMatcher_func {
+	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindStringSubmatch(val)
@@ -20,40 +26,47 @@ func Match_string(regex string, result *string) RegexMatcher_fn {
 	}
 }
 
-func Match_bool(regex string, result *bool) RegexMatcher_fn {
-	return func(line <-chan string, wg *sync.WaitGroup) {
+func RegexMatcher_bool(regex string) RegexMatcher_func {
+	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindString(val)
 			if matches != "" {
-				*result = true
+				*result = "true"
 			}
 		}
 		wg.Done()
 	}
 }
 
-func Match_count(regex string, result *int) RegexMatcher_fn {
-	return func(line <-chan string, wg *sync.WaitGroup) {
+func RegexMatcher_count(regex string) RegexMatcher_func {
+	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindString(val)
 			if matches != "" {
-				*result += 1
+				if *result == "" {
+					*result = "0"
+				}
+				num, err := strconv.Atoi(*result)
+				if err != nil {
+					panic(err)
+				}
+				*result = strconv.Itoa(num + 1)
 			}
 		}
 		wg.Done()
 	}
 }
 
-func Matcher(func_array []RegexMatcher_fn, line <-chan string, output *Output, wg_main *sync.WaitGroup) {
+func RegexMatchers(matcher_array []MatcherType, line <-chan string, wg_main *sync.WaitGroup) {
 	var wg sync.WaitGroup
 	var chans []chan string
-	wg.Add(len(func_array))
+	wg.Add(len(matcher_array))
 
-	for i, fn := range func_array {
+	for i, fn := range matcher_array {
 		chans = append(chans, make(chan string))
-		go fn(chans[i], &wg)
+		go fn.function(fn.target, chans[i], &wg)
 	}
 
 	for val := range line {
