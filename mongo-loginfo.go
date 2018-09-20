@@ -105,9 +105,10 @@ func main() {
 
 	go Read_file(filename, ch_line)
 	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
-	go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
+	//go Matcher(func_array_initandlisten, chans["initandlisten"], output, &wg_main)
 	go Matcher(func_array_main, chans["main"], output, &wg_main)
 	go Matcher(func_array_conn, chans["conn"], output, &wg_main)
+
 	wg_main.Add(len(chans))
 
 	for line := range ch_line {

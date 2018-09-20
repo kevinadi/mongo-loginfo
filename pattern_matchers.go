@@ -5,9 +5,9 @@ import (
 	"sync"
 )
 
-type Regex_matcher_fn func(<-chan string, *sync.WaitGroup)
+type RegexMatcher_fn func(<-chan string, *sync.WaitGroup)
 
-func Match_string(regex string, result *string) Regex_matcher_fn {
+func Match_string(regex string, result *string) RegexMatcher_fn {
 	return func(line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
@@ -20,7 +20,7 @@ func Match_string(regex string, result *string) Regex_matcher_fn {
 	}
 }
 
-func Match_bool(regex string, result *bool) Regex_matcher_fn {
+func Match_bool(regex string, result *bool) RegexMatcher_fn {
 	return func(line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
@@ -33,7 +33,7 @@ func Match_bool(regex string, result *bool) Regex_matcher_fn {
 	}
 }
 
-func Match_count(regex string, result *int) Regex_matcher_fn {
+func Match_count(regex string, result *int) RegexMatcher_fn {
 	return func(line <-chan string, wg *sync.WaitGroup) {
 		re := regexp.MustCompile(regex)
 		for val := range line {
@@ -46,7 +46,7 @@ func Match_count(regex string, result *int) Regex_matcher_fn {
 	}
 }
 
-func Matcher(func_array []Regex_matcher_fn, line <-chan string, output *Output, wg_main *sync.WaitGroup) {
+func Matcher(func_array []RegexMatcher_fn, line <-chan string, output *Output, wg_main *sync.WaitGroup) {
 	var wg sync.WaitGroup
 	var chans []chan string
 	wg.Add(len(func_array))

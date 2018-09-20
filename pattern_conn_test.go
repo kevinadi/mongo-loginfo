@@ -5,16 +5,23 @@ import (
 	"testing"
 )
 
-func TestPatternConn(t *testing.T) {
-	var wg_main sync.WaitGroup
+func Setup_conn_test(wg *sync.WaitGroup) {
 	ch := make(chan string)
 
-	go Matcher(func_array_conn, ch, output, &wg_main)
-	wg_main.Add(1)
+	go func() {
+		ch <- "2018-04-06T15:44:27.119-0500 I ACCESS   [conn2598] Successfully authenticated as principal mms-automation on admin"
+		close(ch)
+	}()
 
-	ch <- "2018-04-06T15:44:27.119-0500 I ACCESS   [conn2598] Successfully authenticated as principal mms-automation on admin"
-	close(ch)
-	wg_main.Wait()
+	go Matcher(func_array_conn, ch, output, wg)
+	wg.Add(1)
+}
+
+func Test_conn_automation(t *testing.T) {
+	var wg sync.WaitGroup
+	Setup_conn_test(&wg)
+
+	wg.Wait()
 
 	if res_conn.automation != "mms-automation" {
 		t.Error("Automation is", res_conn.automation, "expecting mms-automation")

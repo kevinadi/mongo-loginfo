@@ -10,7 +10,7 @@ import (
 
 const Timestamp_pattern = "2006-01-02T15:04:05-0700"
 
-var Timestamp_regex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}-\d{4}$`)
+var Timestamp_regex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[-+]\d{4}$`)
 
 func parse_timestamp(val string) time.Time {
 	var t time.Time
