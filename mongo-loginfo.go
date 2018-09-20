@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -78,6 +79,9 @@ func Read_file(filename string, line chan<- string) {
 }
 
 func main() {
+
+	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
+
 	var GlobalOutput = new(Output)
 
 	if len(os.Args) < 2 {
