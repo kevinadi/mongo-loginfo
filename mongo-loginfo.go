@@ -6,18 +6,14 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Output struct {
 	filename      string
-	log_start     time.Time
-	log_end       time.Time
-	log_duration  time.Duration
-	log_length    int
 	initandlisten *Res_InitAndListen
 	main          *Res_Main
 	conn          *Res_Conn
+	logtimes      *Res_LogTimes
 }
 
 func (o *Output) print_output() {
@@ -46,10 +42,10 @@ Events
 		o.filename,
 		o.initandlisten.host,
 		o.initandlisten.port,
-		o.log_start,
-		o.log_end,
-		o.log_duration,
-		o.log_length,
+		o.logtimes.log_start,
+		o.logtimes.log_end,
+		o.logtimes.log_duration,
+		o.logtimes.log_length,
 		o.initandlisten.db_version,
 		o.initandlisten.storage_engine,
 		o.initandlisten.audit,
@@ -60,8 +56,6 @@ Events
 		o.main.restarts,
 	)
 }
-
-var output = new(Output)
 
 func Read_file(filename string, line chan<- string) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -84,30 +78,38 @@ func Read_file(filename string, line chan<- string) {
 }
 
 func main() {
+	var GlobalOutput = new(Output)
+
 	if len(os.Args) < 2 {
 		fmt.Println("Needs a file name")
 		os.Exit(1)
 	}
 	filename := os.Args[1]
-	output.filename = filename
+	GlobalOutput.filename = filename
 
 	var wg_main sync.WaitGroup
-	var linecount int
-	var time_start, time_end time.Time
 
 	ch_line := make(chan string)
 	chans := map[string]chan string{
-		"ts":            make(chan string),
-		"initandlisten": make(chan string),
-		"main":          make(chan string),
-		"conn":          make(chan string),
+		"ts":            make(chan string, 128),
+		"initandlisten": make(chan string, 128),
+		"main":          make(chan string, 128),
+		"conn":          make(chan string, 128),
 	}
 
 	go Read_file(filename, ch_line)
-	go Matcher_timestamp(chans["ts"], &time_end, &wg_main)
-	go RegexMatchers(Matchers_initandlisten, chans["initandlisten"], &wg_main)
-	go RegexMatchers(Matchers_main, chans["main"], &wg_main)
-	go RegexMatchers(Matchers_conn, chans["conn"], &wg_main)
+
+	output_logtimes := make(chan *Res_LogTimes)
+	go Matcher_timestamp(chans["ts"], output_logtimes, &wg_main)
+
+	output_initandlisten := make(chan *Res_InitAndListen)
+	go MatcherGroup_initandlisten(chans["initandlisten"], output_initandlisten, &wg_main)
+
+	output_main := make(chan *Res_Main)
+	go MatcherGroup_main(chans["main"], output_main, &wg_main)
+
+	output_conn := make(chan *Res_Conn)
+	go MatcherGroup_conn(chans["conn"], output_conn, &wg_main)
 
 	wg_main.Add(len(chans))
 
@@ -118,10 +120,6 @@ func main() {
 			continue
 		}
 
-		linecount += 1
-		if linecount == 1 {
-			time_start = parse_timestamp(lineFields[0])
-		}
 		chans["ts"] <- lineFields[0]
 
 		restofline := strings.Join(lineFields[4:], " ")
@@ -139,16 +137,11 @@ func main() {
 	for _, ch := range chans {
 		close(ch)
 	}
+	GlobalOutput.logtimes = <-output_logtimes
+	GlobalOutput.main = <-output_main
+	GlobalOutput.conn = <-output_conn
+	GlobalOutput.initandlisten = <-output_initandlisten
 	wg_main.Wait()
 
-	output.initandlisten = res_initandlisten
-	output.main = res_main
-	output.conn = res_conn
-	output.log_start = time_start
-	output.log_end = time_end
-	output.log_duration = time_end.Sub(time_start)
-	output.log_length = linecount
-
-	output.print_output()
-
+	GlobalOutput.print_output()
 }

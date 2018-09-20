@@ -14,8 +14,8 @@ type MatcherType struct {
 }
 
 func RegexMatcher_string(regex string) RegexMatcher_func {
+	re := regexp.MustCompile(regex)
 	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
-		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindStringSubmatch(val)
 			if len(matches) > 0 {
@@ -27,8 +27,8 @@ func RegexMatcher_string(regex string) RegexMatcher_func {
 }
 
 func RegexMatcher_bool(regex string) RegexMatcher_func {
+	re := regexp.MustCompile(regex)
 	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
-		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindString(val)
 			if matches != "" {
@@ -40,8 +40,8 @@ func RegexMatcher_bool(regex string) RegexMatcher_func {
 }
 
 func RegexMatcher_count(regex string) RegexMatcher_func {
+	re := regexp.MustCompile(regex)
 	return func(result *string, line <-chan string, wg *sync.WaitGroup) {
-		re := regexp.MustCompile(regex)
 		for val := range line {
 			matches := re.FindString(val)
 			if matches != "" {
@@ -65,7 +65,7 @@ func RegexMatchers(matcher_array []MatcherType, line <-chan string, wg_main *syn
 	wg.Add(len(matcher_array))
 
 	for i, fn := range matcher_array {
-		chans = append(chans, make(chan string))
+		chans = append(chans, make(chan string, 32))
 		go fn.function(fn.target, chans[i], &wg)
 	}
 
