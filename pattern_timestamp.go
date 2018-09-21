@@ -20,14 +20,19 @@ type Res_LogTimes struct {
 var res_logtimes = new(Res_LogTimes)
 
 const Timestamp_pattern = "2006-01-02T15:04:05-0700"
+const Timestamp_pattern_Z = "2006-01-02T15:04:05Z"
 
-var Timestamp_regex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[-+]\d{4}$`)
+var Timestamp_regex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(Z|[-+]\d{4})$`)
 
 func parse_timestamp(val string) time.Time {
 	var t time.Time
 	var err error
+	pat := Timestamp_pattern
 	if Timestamp_regex.FindString(val) != "" {
-		t, err = time.Parse(Timestamp_pattern, val)
+		if strings.HasSuffix(val, "Z") {
+			pat = Timestamp_pattern_Z
+		}
+		t, err = time.Parse(pat, val)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
