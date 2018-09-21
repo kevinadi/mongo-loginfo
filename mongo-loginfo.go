@@ -99,7 +99,7 @@ func main() {
 	flag.Parse()
 
 	if *versionPtr {
-		fmt.Println(os.Args[0], "version", version, date)
+		fmt.Println(os.Args[0], version, date)
 		os.Exit(0)
 	}
 	if flag.NArg() < 1 {
