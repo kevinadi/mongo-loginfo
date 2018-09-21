@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"runtime"
@@ -82,19 +83,30 @@ func Read_file(filename string, line chan<- string) {
 }
 
 func main() {
-
 	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 
-	var GlobalOutput = new(Output)
+	flag.Usage = func() {
+		fmt.Printf("Usage: %s [FILE] [-version] [-help]\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+	flag.Bool("help", false, "Show help information")
+	versionPtr := flag.Bool("version", false, "Show version information")
+	flag.Parse()
 
-	if len(os.Args) < 2 {
-		fmt.Println("Needs a file name")
+	if *versionPtr {
+		fmt.Println(os.Args[0], "version 0.1")
+		os.Exit(0)
+	}
+	if flag.NArg() < 1 {
+		flag.Usage()
 		os.Exit(1)
 	}
-	filename := os.Args[1]
-	GlobalOutput.filename = filename
 
 	var wg_main sync.WaitGroup
+	var GlobalOutput = new(Output)
+
+	filename := flag.Args()[0]
+	GlobalOutput.filename = filename
 
 	ch_line := make(chan string)
 	chans := map[string]chan string{
