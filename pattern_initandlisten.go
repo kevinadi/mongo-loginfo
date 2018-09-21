@@ -1,16 +1,46 @@
 package main
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type Res_InitAndListen struct {
 	host           string
 	port           string
 	db_version     string
 	storage_engine string
+	auth           string
+	auth_type      string
 	keyfile        string
 	audit          string
 	enterprise     string
 	encrypted      string
+}
+
+func (r *Res_InitAndListen) String() string {
+	return fmt.Sprintf(`
+          host: %v
+          port: %v
+    db_version: %v
+storage_engine: %v
+          auth: %v
+     auth_type: %v
+       keyfile: %v
+     encrypted: %v
+    enterprise: %v
+         audit: %v`,
+		r.host,
+		r.port,
+		r.db_version,
+		r.storage_engine,
+		r.auth,
+		r.auth_type,
+		r.keyfile,
+		r.encrypted,
+		r.enterprise,
+		r.audit,
+	)
 }
 
 var Matcher_host = RegexMatcher_string(`starting.*host=([^\s]+)`)
@@ -24,24 +54,29 @@ var Matcher_enterprise = RegexMatcher_bool(`modules:\ *enterprise`)
 var Matcher_encryption = RegexMatcher_bool(`options:.*enableEncryption:\ *true`)
 
 func MatcherGroup_initandlisten(line <-chan string, result chan<- *Res_InitAndListen, wg_main *sync.WaitGroup) {
-	var res_initandlisten = new(Res_InitAndListen)
+	var res = new(Res_InitAndListen)
 	var Matchers_initandlisten = []MatcherType{
-		MatcherType{Matcher_host, &res_initandlisten.host},
-		MatcherType{Matcher_port, &res_initandlisten.port},
-		MatcherType{Matcher_storage_engine_1, &res_initandlisten.storage_engine},
-		MatcherType{Matcher_storage_engine_2, &res_initandlisten.storage_engine},
-		MatcherType{Matcher_db_version, &res_initandlisten.db_version},
-		MatcherType{Matcher_keyfile, &res_initandlisten.keyfile},
-		MatcherType{Matcher_audit, &res_initandlisten.audit},
-		MatcherType{Matcher_enterprise, &res_initandlisten.enterprise},
-		MatcherType{Matcher_encryption, &res_initandlisten.encrypted},
+		MatcherType{Matcher_host, &res.host},
+		MatcherType{Matcher_port, &res.port},
+		MatcherType{Matcher_storage_engine_1, &res.storage_engine},
+		MatcherType{Matcher_storage_engine_2, &res.storage_engine},
+		MatcherType{Matcher_db_version, &res.db_version},
+		MatcherType{Matcher_keyfile, &res.keyfile},
+		MatcherType{Matcher_audit, &res.audit},
+		MatcherType{Matcher_enterprise, &res.enterprise},
+		MatcherType{Matcher_encryption, &res.encrypted},
 	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go RegexMatchers(Matchers_initandlisten, line, &wg)
 	wg.Wait()
-	result <- res_initandlisten
+	result <- res
 	close(result)
+
+	if res.keyfile != "" {
+		res.auth = "true"
+		res.auth_type = "keyfile"
+	}
 	wg_main.Done()
 }

@@ -17,29 +17,29 @@ type Output struct {
 	logtimes      *Res_LogTimes
 }
 
-func (o *Output) print_output() {
-	outstr := `
-      filename : %v
-          host : %v
-          port : %v
-     log start : %v
-       log end : %v
-  log duration : %v
-    log length : %v lines
-    db version : %v
-storage engine : %v
+func (o *Output) String() string {
+	return fmt.Sprintf(`
+        filename : %v
+            host : %v
+            port : %v
+       log start : %v
+         log end : %v
+    log duration : %v
+      log length : %v lines
+      db version : %v
+  storage engine : %v
  
 Features
-  Audit      : %v
-  Keyfile    : %v
-  Enterprise : %v
-  Automation : %v
-  Encryption : %v
+   Authorization : %v
+  Authentication : %v
+         Keyfile : %v
+           Audit : %v
+      Enterprise : %v
+      Automation : %v
+      Encryption : %v
  
 Events
-  Restarts   : %v
-`
-	fmt.Printf(outstr,
+        Restarts : %v`,
 		o.filename,
 		o.initandlisten.host,
 		o.initandlisten.port,
@@ -49,8 +49,11 @@ Events
 		o.logtimes.log_length,
 		o.initandlisten.db_version,
 		o.initandlisten.storage_engine,
-		o.initandlisten.audit,
+
+		o.initandlisten.auth,
+		o.initandlisten.auth_type,
 		o.initandlisten.keyfile,
+		o.initandlisten.audit,
 		o.initandlisten.enterprise,
 		o.conn.automation,
 		o.initandlisten.encrypted,
@@ -147,5 +150,5 @@ func main() {
 	GlobalOutput.initandlisten = <-output_initandlisten
 	wg_main.Wait()
 
-	GlobalOutput.print_output()
+	fmt.Println(GlobalOutput)
 }

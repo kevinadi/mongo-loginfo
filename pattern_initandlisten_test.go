@@ -4,6 +4,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_initandlisten_storage_engine_1(t *testing.T) {
@@ -187,4 +189,33 @@ func Test_initandlisten_encryption(t *testing.T) {
 	if res != "true" {
 		t.Error("encryption is", res, "expecting true")
 	}
+}
+
+func Test_initandlisten_group_1(t *testing.T) {
+	var wg sync.WaitGroup
+
+	ch := make(chan string)
+	outch := make(chan *Res_InitAndListen)
+	go MatcherGroup_initandlisten(ch, outch, &wg)
+	wg.Add(1)
+
+	ch <- `2017-06-25T22:41:52.991-0400 I CONTROL  [initandlisten] db version v3.4.3`
+	ch <- `2018-03-15T01:27:13.858-0700 I CONTROL  [initandlisten] MongoDB starting : pid=18315 port=27017 dbpath=/base/data/mongo 64-bit host=fancyhostname`
+	ch <- `2018-02-08T13:21:09.966Z I CONTROL  [initandlisten] options: { auditLog: { destination: "file", format: "BSON", path: "/audit/auditLog.bson" }, config: "/mongodb1.conf", net: { bindIp: true, http: { JSONPEnabled: false, RESTInterfaceEnabled: false, enabled: false }, ipv6: false, port: 27033, ssl: { allowConnectionsWithoutCertificates: false, allowInvalidCertificates: false, allowInvalidHostnames: false } }, replication: { oplogSizeMB: 2048, replSetName: "REPENH033" }, security: { authorization: "enabled", enableEncryption: true, encryptionCipherMode: "AES256-CBC", encryptionKeyFile: "/encryption.key", keyFile: "/replica.key" }, setParameter: { authenticationMechanisms: "PLAIN,MONGODB-CR", saslauthdPath: "/run/saslauthd/mux" }, storage: { wiredTiger: { engineConfig: { cacheSizeGB: 4.0 } } }, systemLog: { destination: "file", logAppend: false, logRotate: "rename", path: "/var/log/mongodb/mongodb.log", timeStampFormat: "iso8601-utc", verbosity: 0 } }`
+	ch <- `2018-02-08T13:21:09.966Z I CONTROL  [initandlisten] modules: enterprise`
+	ch <- `2018-04-06T15:44:27.119-0500 I ACCESS   [conn2598] Successfully authenticated as principal mms-automation on admin`
+	close(ch)
+	res := <-outch
+	wg.Wait()
+
+	assert.Equal(t, res.host, "fancyhostname", "host")
+	assert.Equal(t, res.port, "27017", "port")
+	assert.Equal(t, res.db_version, "3.4.3", "db_version")
+	assert.Equal(t, res.storage_engine, "wiredTiger", "storage_engine")
+	assert.Equal(t, res.auth, "true", "auth")
+	assert.Equal(t, res.auth_type, "keyfile", "auth_type")
+	assert.Equal(t, res.keyfile, "/replica.key", "keyfile")
+	assert.Equal(t, res.encrypted, "true", "encrypted")
+	assert.Equal(t, res.enterprise, "true", "enterprise")
+	assert.Equal(t, res.audit, "file", "audit")
 }
