@@ -3,6 +3,8 @@ package main
 import (
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_conn_automation(t *testing.T) {
@@ -17,7 +19,5 @@ func Test_conn_automation(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "mms-automation" {
-		t.Error("Automation is", res, "expecting mms-automation")
-	}
+	assert.Equal(t, res, "mms-automation")
 }

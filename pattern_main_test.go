@@ -3,6 +3,8 @@ package main
 import (
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_main_restarts(t *testing.T) {
@@ -18,7 +20,5 @@ func Test_main_restarts(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "2" {
-		t.Error("restart is", res, "expecting 2")
-	}
+	assert.Equal(t, "2", res)
 }

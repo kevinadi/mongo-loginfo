@@ -20,9 +20,7 @@ func Test_initandlisten_storage_engine_1(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "wiredTiger" {
-		t.Error("storage engine is", res, "expecting wiredTiger")
-	}
+	assert.Equal(t, "wiredTiger", res)
 }
 
 func Test_initandlisten_storage_engine_2(t *testing.T) {
@@ -40,9 +38,7 @@ func Test_initandlisten_storage_engine_2(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "wiredtiger" {
-		t.Error("storage engine is", res, "expecting wiredtiger")
-	}
+	assert.Equal(t, "wiredtiger", res)
 }
 
 func Test_initandlisten_storage_engine_3(t *testing.T) {
@@ -58,9 +54,7 @@ func Test_initandlisten_storage_engine_3(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if strings.ToLower(res) != "wiredtiger" {
-		t.Error("storage engine is", res, "expecting wiredtiger")
-	}
+	assert.Equal(t, "wiredtiger", strings.ToLower(res))
 }
 
 func Test_initandlisten_host(t *testing.T) {
@@ -77,9 +71,7 @@ func Test_initandlisten_host(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "Triptykon.local" {
-		t.Error("Host is", res, "expecting Triptykon.local")
-	}
+	assert.Equal(t, "Triptykon.local", res)
 }
 
 func Test_initandlisten_port(t *testing.T) {
@@ -96,9 +88,7 @@ func Test_initandlisten_port(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "27017" {
-		t.Error("Port is", res, "expecting 27017")
-	}
+	assert.Equal(t, "27017", res)
 }
 
 func Test_initandlisten_db_version(t *testing.T) {
@@ -114,9 +104,7 @@ func Test_initandlisten_db_version(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "3.6.5" {
-		t.Error("db version is", res, "expecting 3.6.5")
-	}
+	assert.Equal(t, "3.6.5", res)
 }
 
 func Test_initandlisten_keyfile(t *testing.T) {
@@ -132,9 +120,7 @@ func Test_initandlisten_keyfile(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "/replica.key" {
-		t.Error("keyfile is", res, "expecting /replica.key")
-	}
+	assert.Equal(t, "/replica.key", res)
 }
 
 func Test_initandlisten_audit(t *testing.T) {
@@ -150,9 +136,7 @@ func Test_initandlisten_audit(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "file" {
-		t.Error("audit is", res, "expecting file")
-	}
+	assert.Equal(t, "file", res)
 }
 
 func Test_initandlisten_enterprise(t *testing.T) {
@@ -168,9 +152,7 @@ func Test_initandlisten_enterprise(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "true" {
-		t.Error("enterprise is", res, "expecting true")
-	}
+	assert.Equal(t, "true", res)
 }
 
 func Test_initandlisten_encryption(t *testing.T) {
@@ -186,9 +168,7 @@ func Test_initandlisten_encryption(t *testing.T) {
 	close(ch)
 	wg.Wait()
 
-	if res != "true" {
-		t.Error("encryption is", res, "expecting true")
-	}
+	assert.Equal(t, "true", res)
 }
 
 func Test_initandlisten_group_1(t *testing.T) {
@@ -208,14 +188,14 @@ func Test_initandlisten_group_1(t *testing.T) {
 	res := <-outch
 	wg.Wait()
 
-	assert.Equal(t, res.host, "fancyhostname", "host")
-	assert.Equal(t, res.port, "27017", "port")
-	assert.Equal(t, res.db_version, "3.4.3", "db_version")
-	assert.Equal(t, res.storage_engine, "wiredTiger", "storage_engine")
-	assert.Equal(t, res.auth, "true", "auth")
-	assert.Equal(t, res.auth_type, "keyfile", "auth_type")
-	assert.Equal(t, res.keyfile, "/replica.key", "keyfile")
-	assert.Equal(t, res.encrypted, "true", "encrypted")
-	assert.Equal(t, res.enterprise, "true", "enterprise")
-	assert.Equal(t, res.audit, "file", "audit")
+	assert.Equal(t, "fancyhostname", res.host, "host")
+	assert.Equal(t, "27017", res.port, "port")
+	assert.Equal(t, "3.4.3", res.db_version, "db_version")
+	assert.Equal(t, "wiredTiger", res.storage_engine, "storage_engine")
+	assert.Equal(t, "true", res.auth, "auth")
+	assert.Equal(t, "keyfile", res.auth_type, "auth_type")
+	assert.Equal(t, "/replica.key", res.keyfile, "keyfile")
+	assert.Equal(t, "true", res.encrypted, "encrypted")
+	assert.Equal(t, "true", res.enterprise, "enterprise")
+	assert.Equal(t, "file", res.audit, "audit")
 }
