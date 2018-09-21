@@ -82,6 +82,11 @@ func Read_file(filename string, line chan<- string) {
 	close(line)
 }
 
+var (
+	version string
+	date    string
+)
+
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 
@@ -94,7 +99,7 @@ func main() {
 	flag.Parse()
 
 	if *versionPtr {
-		fmt.Println(os.Args[0], "version 0.1")
+		fmt.Println(os.Args[0], "version", version, date)
 		os.Exit(0)
 	}
 	if flag.NArg() < 1 {
