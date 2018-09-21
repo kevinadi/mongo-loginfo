@@ -5,5 +5,8 @@ exec=mongo-loginfo
 all:
 	@go build -v -ldflags '-X "main.version=${version}" -X "main.date=${date}"'
 
+install:
+	@go install -v -ldflags '-X "main.version=${version}" -X "main.date=${date}"'
+
 clean:
 	@rm -f ${exec}
