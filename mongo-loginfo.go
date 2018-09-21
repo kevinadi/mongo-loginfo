@@ -129,14 +129,13 @@ func main() {
 
 		chans["ts"] <- lineFields[0]
 
-		restofline := strings.Join(lineFields[4:], " ")
 		switch {
 		case lineFields[3] == "[initandlisten]":
-			chans["initandlisten"] <- restofline
+			chans["initandlisten"] <- line
 		case lineFields[3] == "[main]":
-			chans["main"] <- restofline
+			chans["main"] <- line
 		case strings.HasPrefix(lineFields[3], "[conn"):
-			chans["conn"] <- restofline
+			chans["conn"] <- line
 		}
 
 	}
