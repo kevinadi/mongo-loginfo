@@ -18,6 +18,19 @@ type Res_InitAndListen struct {
 	encrypted      string
 }
 
+func (r *Res_InitAndListen) Init() {
+	r.host = "-"
+	r.port = "-"
+	r.db_version = "-"
+	r.storage_engine = "-"
+	r.auth = "-"
+	r.auth_type = "-"
+	r.keyfile = "-"
+	r.audit = "-"
+	r.enterprise = "-"
+	r.encrypted = "-"
+}
+
 func (r *Res_InitAndListen) String() string {
 	return fmt.Sprintf(`
           host: %v
@@ -43,8 +56,8 @@ storage_engine: %v
 	)
 }
 
-var Matcher_host = RegexMatcher_string(`starting.*host=([^\s]+)`)
-var Matcher_port = RegexMatcher_string(`starting.*port=(\d+)`)
+var Matcher_host = RegexMatcher_string(`pid=.*port=\d+.*host=([^\s]+)`)
+var Matcher_port = RegexMatcher_string(`pid=.*port=(\d+).*host=[^\s]+`)
 var Matcher_storage_engine_1 = RegexMatcher_string(`options:.*storage:.*(wiredTiger|mmapv1)`)
 var Matcher_storage_engine_2 = RegexMatcher_string(`(wiredtiger)_open config:`)
 var Matcher_db_version = RegexMatcher_string(`db version v(\d{0,2}\.\d{0,2}\.\d{0,2})`)
@@ -55,6 +68,7 @@ var Matcher_encryption = RegexMatcher_bool(`options:.*enableEncryption:\ *true`)
 
 func MatcherGroup_initandlisten(line <-chan string, result chan<- *Res_InitAndListen, wg_main *sync.WaitGroup) {
 	var res = new(Res_InitAndListen)
+	res.Init()
 	var Matchers_initandlisten = []MatcherType{
 		MatcherType{Matcher_host, &res.host},
 		MatcherType{Matcher_port, &res.port},

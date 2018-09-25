@@ -19,7 +19,8 @@ type Output struct {
 }
 
 func (o *Output) String() string {
-	return fmt.Sprintf(`
+	return fmt.Sprintf(`mongo-loginfo %v %v
+ 
         filename : %v
             host : %v
             port : %v
@@ -37,10 +38,13 @@ Features
            Audit : %v
       Enterprise : %v
       Automation : %v
+      Monitoring : %v
       Encryption : %v
  
 Events
         Restarts : %v`,
+		version,
+		date,
 		o.filename,
 		o.initandlisten.host,
 		o.initandlisten.port,
@@ -57,6 +61,7 @@ Events
 		o.initandlisten.audit,
 		o.initandlisten.enterprise,
 		o.conn.automation,
+		o.conn.monitoring,
 		o.initandlisten.encrypted,
 		o.main.restarts,
 	)
@@ -152,7 +157,12 @@ func main() {
 		case lineFields[3] == "[main]":
 			chans["main"] <- line
 		case strings.HasPrefix(lineFields[3], "[conn"):
-			chans["conn"] <- line
+			switch lineFields[2] {
+			case "ACCESS":
+				chans["conn"] <- line
+			case "CONTROL":
+				chans["initandlisten"] <-line
+			}
 		}
 
 	}
