@@ -42,7 +42,8 @@ Features
       Encryption : %v
  
 Events
-        Restarts : %v`,
+        Restarts : %v
+        fasserts : %v`,
 		version,
 		date,
 		o.filename,
@@ -64,6 +65,7 @@ Events
 		o.conn.monitoring,
 		o.initandlisten.encrypted,
 		o.main.restarts,
+		o.main.fasserts,
 	)
 }
 
@@ -154,15 +156,15 @@ func main() {
 		switch {
 		case lineFields[3] == "[initandlisten]":
 			chans["initandlisten"] <- line
-		case lineFields[3] == "[main]":
-			chans["main"] <- line
 		case strings.HasPrefix(lineFields[3], "[conn"):
 			switch lineFields[2] {
 			case "ACCESS":
 				chans["conn"] <- line
 			case "CONTROL":
-				chans["initandlisten"] <-line
+				chans["initandlisten"] <- line
 			}
+		default:
+			chans["main"] <- line
 		}
 
 	}
