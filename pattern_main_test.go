@@ -43,3 +43,20 @@ func Test_main_fasserts(t *testing.T) {
 
 	assert.Equal(t, "1", res)
 }
+
+func Test_main_wt_panic(t *testing.T) {
+	var wg sync.WaitGroup
+	var res string
+
+	ch := make(chan string)
+	go Matcher_wt_panic(&res, ch, &wg)
+	wg.Add(1)
+
+	ch <- "2019-06-15T04:36:45.896+0000 E STORAGE  [thread53716] WiredTiger error (28) [1560573405:896599][78615:0x7ffaf5fb1700], eviction-server: cache eviction thread error: No space left on device"
+	ch <- "2019-06-15T04:36:45.896+0000 E STORAGE  [thread53716] WiredTiger error (-31804) [1560573405:896624][78615:0x7ffaf5fb1700], eviction-server: the process must exit and restart: WT_PANIC: WiredTiger library panic"
+
+	close(ch)
+	wg.Wait()
+
+	assert.Equal(t, "1", res)
+}

@@ -43,7 +43,8 @@ Features
  
 Events
         Restarts : %v
-        fasserts : %v`,
+        fasserts : %v
+        WT_PANIC : %v`,
 		version,
 		date,
 		o.filename,
@@ -66,6 +67,7 @@ Events
 		o.initandlisten.encrypted,
 		o.main.restarts,
 		o.main.fasserts,
+		o.main.wt_panic,
 	)
 }
 
